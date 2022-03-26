@@ -17,13 +17,19 @@ max_char length until the given string is found inside the book.
 """
 
 import re
-import random
 import os
 from os.path import join
+import random
+import argparse
 
 
 class Hexagono:
-	def __init__(self, symbols, max_char=50, path_books='books'):
+	def __init__(self, symbols=False, max_char=640, path_books='books'):
+		if not symbols:
+			alpha = list('abcdefghijklmnñopqrstuvwxyz')  # letras del abecedario
+			punt =  list(', .')  # coma, espacio, punto
+			symbols = alpha + punt
+
 		self.symbols = symbols
 		self.max_char = max_char
 		self.path_books = path_books
@@ -58,6 +64,13 @@ class Hexagono:
 			print(f"Warning: saving to folder {path} that already exists.")
 			pass
 
+	def is_possible(self, chain):
+		impossible = [c for c in set(chain) if c not in self.symbols]
+		if len(impossible) > 0:
+			print(f"characters {impossible} are impossible to generate")
+			return False
+		return True
+
 	def generate_books(self, N):
 		# generates N unique books
 		# and saves them to self.path using the index as title
@@ -71,6 +84,8 @@ class Hexagono:
 
 	def generate_until(self, chain):
 		# generates books until chain is generated
+		if not self.is_possible(chain):
+			return False
 		generated = False
 		i = 0
 		while not generated:
@@ -83,13 +98,16 @@ class Hexagono:
 
 
 if __name__ == '__main__':
-	alpha = list('abcdefghijklmnopqrstuvwxyz')  # letras del abecedario
-	punt =  list(', .')  # coma, espacio, punto
+	parser = argparse.ArgumentParser(description='...')
+	parser.add_argument('-s', '--symbols', action='store', type=str, default=False)
+	parser.add_argument('-c', '--max_char', action='store', type=int, default=False)
+	parser.add_argument('-u', '--until', action='store', type=str, default=False)
+	parser.add_argument('-p', '--path_books', action='store', type=str, default='books')
 
-	symbols = alpha + punt
-	max_char = 3200
-	path_books = 'books'
+	args = parser.parse_args()
 
-	hex = Hexagono(symbols, max_char, path_books)
-	hex.generate_books(100)
-	hex.generate_until('la biblioteca de babel')
+	hex = Hexagono(args.symbols, args.max_char, args.path_books)
+	if args.max_char:
+		hex.generate_books(args.max_char)
+	elif args.until:
+		hex.generate_until(args.until)
